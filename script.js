@@ -1,255 +1,292 @@
-/* ═══════════════════════════════════════════════════
-   METTALOKA YOUTH CENTRE — SCRIPT.JS
-   ═══════════════════════════════════════════════════ */
-(function () {
-  'use strict';
+/* ═══════════════════════════════════════════════════════
+   METTALOKA YOUTH CENTRE — script.js
+   Fixes: burger menu, back-to-top, hero slideshow, lightbox
+   ═══════════════════════════════════════════════════════ */
+(function(){
+'use strict';
 
-  /* ── ELEMENTS ── */
-  const header    = document.getElementById('site-header');
-  const burger    = document.getElementById('burger');
-  const navMenu   = document.getElementById('nav-menu');
-  const btt       = document.getElementById('btt');
-  const lightbox  = document.getElementById('lightbox');
-  const lbImg     = document.getElementById('lb-img');
-  const lbClose   = document.getElementById('lb-close');
-  const lbPrev    = document.getElementById('lb-prev');
-  const lbNext    = document.getElementById('lb-next');
-  const lbCount   = document.getElementById('lb-count');
-  const heroSlides= document.querySelectorAll('.hero-slide');
-  const heroDots  = document.querySelectorAll('.dot');
-  const galleryItems = document.querySelectorAll('.gi');
+/* ── Wait for DOM ── */
+document.addEventListener('DOMContentLoaded', function(){
 
-  /* ══════════════════════════════════════════
-     1. SCROLL — header + back-to-top
-  ══════════════════════════════════════════ */
-  function onScroll() {
-    if (window.scrollY > 60)  { header.classList.add('scrolled'); }
-    else                       { header.classList.remove('scrolled'); }
+  /* ── 1. ELEMENT REFS ───────────────────────────────── */
+  var hdr       = document.getElementById('hdr');
+  var hbg       = document.getElementById('hbg');
+  var nmenu     = document.getElementById('nmenu');
+  var btt       = document.getElementById('btt');
+  var slides    = document.querySelectorAll('.slide');
+  var sdotsWrap = document.getElementById('sdots');
+  var galGrid   = document.getElementById('gal');
+  var lbox      = document.getElementById('lbox');
+  var lbxImg    = document.getElementById('lbx-img');
+  var lbxClose  = document.getElementById('lbx-close');
+  var lbxPrev   = document.getElementById('lbx-prev');
+  var lbxNext   = document.getElementById('lbx-next');
+  var lbxCnt    = document.getElementById('lbx-cnt');
 
-    if (window.scrollY > 400) { btt.classList.add('show'); }
-    else                       { btt.classList.remove('show'); }
+  /* ═══════════════════════════════════════════════════
+     2. STICKY HEADER + BACK-TO-TOP
+  ═══════════════════════════════════════════════════ */
+  function handleScroll(){
+    var y = window.pageYOffset || document.documentElement.scrollTop;
 
+    /* header */
+    if(y > 60){ hdr.classList.add('scrolled'); }
+    else       { hdr.classList.remove('scrolled'); }
+
+    /* back-to-top */
+    if(y > 400){ btt.classList.add('show'); }
+    else        { btt.classList.remove('show'); }
+
+    /* scroll reveal */
     revealCheck();
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
 
-  /* ══════════════════════════════════════════
-     2. BACK TO TOP
-  ══════════════════════════════════════════ */
-  btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  window.addEventListener('scroll', handleScroll, {passive:true});
+  handleScroll(); /* run on load */
 
-  /* ══════════════════════════════════════════
-     3. MOBILE NAV
-  ══════════════════════════════════════════ */
-  burger.addEventListener('click', () => {
-    const open = navMenu.classList.toggle('open');
-    const bars = burger.querySelectorAll('span');
-    if (open) {
-      bars[0].style.cssText = 'transform:translateY(7px) rotate(45deg)';
-      bars[1].style.cssText = 'opacity:0';
-      bars[2].style.cssText = 'transform:translateY(-7px) rotate(-45deg)';
-    } else {
-      bars.forEach(b => b.style.cssText = '');
-    }
-  });
+  /* ═══════════════════════════════════════════════════
+     3. BACK TO TOP — click
+  ═══════════════════════════════════════════════════ */
+  if(btt){
+    btt.addEventListener('click', function(){
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  }
 
-  navMenu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      navMenu.classList.remove('open');
-      burger.querySelectorAll('span').forEach(b => b.style.cssText = '');
+  /* ═══════════════════════════════════════════════════
+     4. BURGER / MOBILE NAV
+     — The ONLY thing that should toggle .open on nmenu
+  ═══════════════════════════════════════════════════ */
+  var menuOpen = false;
+
+  function openMenu(){
+    menuOpen = true;
+    nmenu.classList.add('open');
+    hbg.classList.add('open');
+    hbg.setAttribute('aria-expanded','true');
+    document.body.style.overflow = ''; /* don't lock body scroll */
+  }
+
+  function closeMenu(){
+    menuOpen = false;
+    nmenu.classList.remove('open');
+    hbg.classList.remove('open');
+    hbg.setAttribute('aria-expanded','false');
+  }
+
+  if(hbg && nmenu){
+    hbg.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(menuOpen){ closeMenu(); } else { openMenu(); }
+    });
+
+    /* Close when a nav link is tapped */
+    nmenu.querySelectorAll('.nlink').forEach(function(a){
+      a.addEventListener('click', function(){
+        closeMenu();
+      });
+    });
+
+    /* Close when tapping outside */
+    document.addEventListener('click', function(e){
+      if(menuOpen && !hdr.contains(e.target)){
+        closeMenu();
+      }
+    });
+
+    /* Close on Escape */
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && menuOpen){ closeMenu(); }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════
+     5. SMOOTH ANCHOR SCROLL (offset for fixed header)
+  ═══════════════════════════════════════════════════ */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var hash = a.getAttribute('href');
+      if(hash === '#') return;
+      var target = document.querySelector(hash);
+      if(!target) return;
+      e.preventDefault();
+      var offset = (hdr ? hdr.offsetHeight : 72) + 8;
+      var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({top: top, behavior:'smooth'});
     });
   });
 
-  document.addEventListener('click', e => {
-    if (!header.contains(e.target)) {
-      navMenu.classList.remove('open');
-      burger.querySelectorAll('span').forEach(b => b.style.cssText = '');
-    }
-  });
+  /* ═══════════════════════════════════════════════════
+     6. HERO SLIDESHOW — auto every 2.5 s
+  ═══════════════════════════════════════════════════ */
+  var curSlide = 0;
+  var slideTimer = null;
+  var dots = [];
 
-  /* ══════════════════════════════════════════
-     4. HERO SLIDESHOW
-  ══════════════════════════════════════════ */
-  let currentSlide = 0;
-  let slideTimer;
-
-  function goToSlide(n) {
-    heroSlides[currentSlide].classList.remove('active');
-    heroDots[currentSlide].classList.remove('active');
-    currentSlide = (n + heroSlides.length) % heroSlides.length;
-    heroSlides[currentSlide].classList.add('active');
-    heroDots[currentSlide].classList.add('active');
+  /* Build dots dynamically */
+  if(sdotsWrap && slides.length){
+    slides.forEach(function(_,i){
+      var btn = document.createElement('button');
+      btn.className = 'sdot' + (i===0?' active':'');
+      btn.setAttribute('aria-label','Slide '+(i+1));
+      btn.dataset.s = i;
+      sdotsWrap.appendChild(btn);
+      dots.push(btn);
+      btn.addEventListener('click',function(){
+        goSlide(i);
+        resetTimer();
+      });
+    });
   }
 
-  function nextSlide() { goToSlide(currentSlide + 1); }
-
-  function startSlideshow() {
-    slideTimer = setInterval(nextSlide, 4500);
+  function goSlide(n){
+    slides[curSlide].classList.remove('active');
+    if(dots[curSlide]) dots[curSlide].classList.remove('active');
+    curSlide = (n + slides.length) % slides.length;
+    slides[curSlide].classList.add('active');
+    if(dots[curSlide]) dots[curSlide].classList.add('active');
   }
 
-  function resetSlideshow() {
+  function tick(){ goSlide(curSlide + 1); }
+
+  function startTimer(){
+    slideTimer = setInterval(tick, 2500); /* 2.5 seconds */
+  }
+
+  function resetTimer(){
     clearInterval(slideTimer);
-    startSlideshow();
+    startTimer();
   }
 
-  heroDots.forEach(dot => {
-    dot.addEventListener('click', () => {
-      goToSlide(parseInt(dot.dataset.slide));
-      resetSlideshow();
+  if(slides.length > 1){ startTimer(); }
+
+  /* ═══════════════════════════════════════════════════
+     7. GALLERY LIGHTBOX
+  ═══════════════════════════════════════════════════ */
+  var galImgs = [];
+  var curImg  = 0;
+
+  if(galGrid){
+    galGrid.querySelectorAll('.gi').forEach(function(gi,i){
+      var img = gi.querySelector('img');
+      if(img) galImgs.push(img.src);
+      gi.addEventListener('click', function(){ openLbox(i); });
     });
-  });
+  }
 
-  startSlideshow();
-
-  /* ══════════════════════════════════════════
-     5. GALLERY LIGHTBOX
-  ══════════════════════════════════════════ */
-  // Collect all image srcs from gallery
-  const galleryImgs = Array.from(galleryItems).map(gi => gi.querySelector('img').src);
-  let currentGalleryIdx = 0;
-
-  function openLightbox(idx) {
-    currentGalleryIdx = idx;
-    lbImg.src = galleryImgs[idx];
-    lbCount.textContent = (idx + 1) + ' / ' + galleryImgs.length;
-    lightbox.classList.add('open');
+  function openLbox(i){
+    curImg = i;
+    lbxImg.src = galImgs[i];
+    updateCount();
+    lbox.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
 
-  function closeLightbox() {
-    lightbox.classList.remove('open');
+  function closeLbox(){
+    lbox.classList.remove('open');
     document.body.style.overflow = '';
-    // Clear src after transition to free memory
-    setTimeout(() => { if (!lightbox.classList.contains('open')) lbImg.src = ''; }, 350);
+    setTimeout(function(){ if(!lbox.classList.contains('open')) lbxImg.src=''; }, 350);
   }
 
-  function showGalleryImg(idx) {
-    currentGalleryIdx = (idx + galleryImgs.length) % galleryImgs.length;
-    lbImg.style.opacity = '0';
-    setTimeout(() => {
-      lbImg.src = galleryImgs[currentGalleryIdx];
-      lbCount.textContent = (currentGalleryIdx + 1) + ' / ' + galleryImgs.length;
-      lbImg.style.opacity = '1';
+  function showImg(i){
+    curImg = (i + galImgs.length) % galImgs.length;
+    lbxImg.style.opacity = '0';
+    setTimeout(function(){
+      lbxImg.src = galImgs[curImg];
+      updateCount();
+      lbxImg.style.opacity = '1';
     }, 120);
   }
 
-  // Add transition to lb img
-  if (lbImg) lbImg.style.transition = 'opacity .15s ease';
-
-  galleryItems.forEach((gi, i) => {
-    gi.addEventListener('click', () => openLightbox(i));
-  });
-
-  lbClose.addEventListener('click', closeLightbox);
-  lbPrev.addEventListener('click', () => showGalleryImg(currentGalleryIdx - 1));
-  lbNext.addEventListener('click', () => showGalleryImg(currentGalleryIdx + 1));
-
-  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-
-  document.addEventListener('keydown', e => {
-    if (!lightbox.classList.contains('open')) return;
-    if (e.key === 'Escape')      closeLightbox();
-    if (e.key === 'ArrowLeft')   showGalleryImg(currentGalleryIdx - 1);
-    if (e.key === 'ArrowRight')  showGalleryImg(currentGalleryIdx + 1);
-  });
-
-  // Touch swipe support
-  let touchStartX = 0;
-  lightbox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
-  lightbox.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) {
-      dx < 0 ? showGalleryImg(currentGalleryIdx + 1) : showGalleryImg(currentGalleryIdx - 1);
-    }
-  });
-
-  /* ══════════════════════════════════════════
-     6. SMOOTH ANCHOR SCROLL (accounts for nav)
-  ══════════════════════════════════════════ */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (!target) return;
-      e.preventDefault();
-      const offset = header.offsetHeight + 12;
-      window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
-    });
-  });
-
-  /* ══════════════════════════════════════════
-     7. SCROLL REVEAL
-  ══════════════════════════════════════════ */
-  const revealTargets = document.querySelectorAll(
-    '.acard, .centre-card, .life-card, .prog-card, ' +
-    '.sel-step, .c-stat, .ncard, .gi, .contact-card, ' +
-    '.stat, .carla-about p, .carla-selection'
-  );
-
-  // Set initial hidden state
-  revealTargets.forEach((el, i) => {
-    el.classList.add('reveal');
-    // Stagger delay for grid children
-    const parent = el.parentElement;
-    if (parent) {
-      const siblings = Array.from(parent.children).filter(c => c.classList.contains('reveal') || c === el);
-      const idx = Array.from(parent.children).indexOf(el);
-      el.style.transitionDelay = Math.min(idx * 0.06, 0.35) + 's';
-    }
-  });
-
-  const revealObs = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        revealObs.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
-
-  function revealCheck() {
-    revealTargets.forEach(el => {
-      const rect = el.getBoundingClientRect();
-      if (rect.top < window.innerHeight - 30) {
-        el.classList.add('visible');
-      }
-    });
+  function updateCount(){
+    if(lbxCnt) lbxCnt.textContent = (curImg+1) + ' / ' + galImgs.length;
   }
 
-  revealTargets.forEach(el => revealObs.observe(el));
-  revealCheck(); // Run immediately for above-fold items
+  lbxImg.style.transition = 'opacity .15s ease';
 
-  /* ══════════════════════════════════════════
-     8. STATS COUNTER
-  ══════════════════════════════════════════ */
-  const statsBar = document.querySelector('.stats-bar');
-  let counted = false;
+  if(lbxClose) lbxClose.addEventListener('click', closeLbox);
+  if(lbxPrev)  lbxPrev.addEventListener('click',  function(){ showImg(curImg-1); });
+  if(lbxNext)  lbxNext.addEventListener('click',  function(){ showImg(curImg+1); });
 
-  const statsObs = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting && !counted) {
-      counted = true;
-      document.querySelectorAll('.stat strong').forEach(el => {
-        const raw = el.textContent.trim();
-        const match = raw.match(/^(\d+)/);
-        if (!match) return;
-        const target = parseInt(match[1]);
-        const suffix = raw.slice(match[1].length);
-        const dur = 1400;
-        const start = performance.now();
-        function tick(now) {
-          const p = Math.min((now - start) / dur, 1);
-          const v = Math.round((1 - Math.pow(1 - p, 3)) * target);
-          el.textContent = v + suffix;
-          if (p < 1) requestAnimationFrame(tick);
+  lbox.addEventListener('click', function(e){
+    if(e.target === lbox) closeLbox();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(!lbox.classList.contains('open')) return;
+    if(e.key === 'Escape')      closeLbox();
+    if(e.key === 'ArrowLeft')   showImg(curImg-1);
+    if(e.key === 'ArrowRight')  showImg(curImg+1);
+  });
+
+  /* Touch swipe */
+  var tx = 0;
+  lbox.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].clientX; }, {passive:true});
+  lbox.addEventListener('touchend',   function(e){
+    var dx = e.changedTouches[0].clientX - tx;
+    if(Math.abs(dx) > 40){ dx < 0 ? showImg(curImg+1) : showImg(curImg-1); }
+  });
+
+  /* ═══════════════════════════════════════════════════
+     8. SCROLL REVEAL
+  ═══════════════════════════════════════════════════ */
+  var revItems = document.querySelectorAll('.reveal');
+
+  var revObs = null;
+  if('IntersectionObserver' in window){
+    revObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('vis');
+          revObs.unobserve(entry.target);
         }
-        requestAnimationFrame(tick);
       });
-    }
-  }, { threshold: 0.5 });
+    }, {threshold:0.12, rootMargin:'0px 0px -24px 0px'});
 
-  if (statsBar) statsObs.observe(statsBar);
+    revItems.forEach(function(el){ revObs.observe(el); });
+  } else {
+    /* Fallback: just show all */
+    revItems.forEach(function(el){ el.classList.add('vis'); });
+  }
 
-  console.log('✅ Mettaloka Youth Centre — loaded');
-  console.log('🏠 Est. 2003 · Brotherhood · Discipline · Learning');
+  function revealCheck(){
+    revItems.forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if(r.top < window.innerHeight - 24){ el.classList.add('vis'); }
+    });
+  }
+  revealCheck();
+
+  /* ═══════════════════════════════════════════════════
+     9. STATS COUNTER
+  ═══════════════════════════════════════════════════ */
+  var statsBar  = document.querySelector('.stats-bar');
+  var counted   = false;
+
+  if(statsBar){
+    var sObs = new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting && !counted){
+        counted = true;
+        document.querySelectorAll('.stt-n').forEach(function(el){
+          var raw    = el.getAttribute('data-target') || el.textContent;
+          var suffix = el.getAttribute('data-suffix') || '';
+          var target = parseInt(raw, 10);
+          if(isNaN(target)) return;
+          var dur = 1400, start = performance.now();
+          (function tick(now){
+            var p = Math.min((now-start)/dur, 1);
+            var v = Math.round((1 - Math.pow(1-p,3)) * target);
+            el.textContent = v + suffix;
+            if(p < 1) requestAnimationFrame(tick);
+          })(start);
+        });
+      }
+    },{threshold:0.5});
+    sObs.observe(statsBar);
+  }
+
+  console.log('✅ Mettaloka Youth Centre — ready');
+
+}); /* end DOMContentLoaded */
 
 })();
