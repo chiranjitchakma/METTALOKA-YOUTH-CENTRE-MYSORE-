@@ -289,7 +289,7 @@
     }
 
     /* ============================================================
-       9. THOUGHT OF THE DAY — changes daily, fades between quotes
+       9. THOUGHT OF THE DAY — changes once per day at midnight only
     ============================================================ */
     var thoughts = [
       "Discipline is the foundation on which success and character are built.",
@@ -306,32 +306,67 @@
     var tAuthor = document.getElementById('thought-author');
 
     if (tQuote && tAuthor) {
-      /* Pick thought based on day of year so it changes daily */
-      var now   = new Date();
-      var start = new Date(now.getFullYear(), 0, 0);
-      var dayOfYear = Math.floor((now - start) / 86400000);
-      var todayIdx  = dayOfYear % thoughts.length;
+      /* Use day of year so same quote shows all day, changes at midnight */
+      var now    = new Date();
+      var start  = new Date(now.getFullYear(), 0, 0);
+      var dayIdx = Math.floor((now - start) / 86400000) % thoughts.length;
 
-      tQuote.textContent  = '\u201C' + thoughts[todayIdx] + '\u201D';
+      tQuote.textContent  = '\u201C' + thoughts[dayIdx] + '\u201D';
       tAuthor.textContent = thoughtAuthor;
 
-      /* Auto-cycle through thoughts every 8 seconds */
-      var tIdx = todayIdx;
-      setInterval(function () {
-        tQuote.classList.add('fading');
-        tAuthor.classList.add('fading');
+      /* Schedule change at midnight using time-to-midnight */
+      function scheduleNextDay() {
+        var n    = new Date();
+        var msToMidnight = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 0, 0) - n;
         setTimeout(function () {
-          tIdx = (tIdx + 1) % thoughts.length;
-          tQuote.textContent  = '\u201C' + thoughts[tIdx] + '\u201D';
-          tAuthor.textContent = thoughtAuthor;
-          tQuote.classList.remove('fading');
-          tAuthor.classList.remove('fading');
-        }, 620);
-      }, 8000);
+          var s2    = new Date();
+          var s2day = Math.floor((s2 - new Date(s2.getFullYear(), 0, 0)) / 86400000) % thoughts.length;
+          tQuote.classList.add('fading');
+          tAuthor.classList.add('fading');
+          setTimeout(function () {
+            tQuote.textContent  = '\u201C' + thoughts[s2day] + '\u201D';
+            tAuthor.textContent = thoughtAuthor;
+            tQuote.classList.remove('fading');
+            tAuthor.classList.remove('fading');
+          }, 650);
+          scheduleNextDay(); /* schedule the day after that */
+        }, msToMidnight);
+      }
+      scheduleNextDay();
     }
 
     /* ============================================================
-       10. GALLERY VIEW MORE
+       10. SCHEDULE — highlight current time slot with green dot
+    ============================================================ */
+    function highlightSchedule() {
+      var h = new Date().getHours(); /* 0–23 */
+      var rows = document.querySelectorAll('.sr[data-from]');
+      rows.forEach(function (row) {
+        var from = parseInt(row.getAttribute('data-from'), 10);
+        var to   = parseInt(row.getAttribute('data-to'), 10);
+        var isNow;
+        if (from < to) {
+          isNow = (h >= from && h < to);
+        } else {
+          /* overnight slot e.g. 23→5 */
+          isNow = (h >= from || h < to);
+        }
+        var dot = row.querySelector('.sd');
+        if (isNow) {
+          row.classList.add('sr-now');
+          if (dot) { dot.classList.add('sd-now'); }
+        } else {
+          row.classList.remove('sr-now');
+          if (dot) { dot.classList.remove('sd-now'); }
+        }
+      });
+    }
+    highlightSchedule();
+    /* Re-check every minute in case page stays open across an hour boundary */
+    setInterval(highlightSchedule, 60000);
+
+    /* ============================================================
+       11. GALLERY VIEW MORE
     ============================================================ */
     var moreBtn    = document.getElementById('gallery-more-btn');
     var moreLabel  = document.getElementById('gallery-more-label');
@@ -350,7 +385,6 @@
           moreLabel.textContent = 'View All Photos (29)';
           moreBtn.classList.remove('expanded');
           galExpanded = false;
-          /* Scroll back to gallery top */
           var galSec = document.getElementById('s-gallery');
           if (galSec) {
             var navH = HDR ? HDR.offsetHeight : 70;
