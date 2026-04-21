@@ -1,292 +1,266 @@
-/* ═══════════════════════════════════════════════════════
+/* ================================================================
    METTALOKA YOUTH CENTRE — script.js
-   Fixes: burger menu, back-to-top, hero slideshow, lightbox
-   ═══════════════════════════════════════════════════════ */
-(function(){
-'use strict';
+   All features: nav scroll, burger menu, hero slideshow,
+   lightbox, scroll reveal, stats counter, back-to-top,
+   smooth scroll with header offset.
+================================================================ */
 
-/* ── Wait for DOM ── */
-document.addEventListener('DOMContentLoaded', function(){
+(function () {
+  'use strict';
 
-  /* ── 1. ELEMENT REFS ───────────────────────────────── */
-  var hdr       = document.getElementById('hdr');
-  var hbg       = document.getElementById('hbg');
-  var nmenu     = document.getElementById('nmenu');
-  var btt       = document.getElementById('btt');
-  var slides    = document.querySelectorAll('.slide');
-  var sdotsWrap = document.getElementById('sdots');
-  var galGrid   = document.getElementById('gal');
-  var lbox      = document.getElementById('lbox');
-  var lbxImg    = document.getElementById('lbx-img');
-  var lbxClose  = document.getElementById('lbx-close');
-  var lbxPrev   = document.getElementById('lbx-prev');
-  var lbxNext   = document.getElementById('lbx-next');
-  var lbxCnt    = document.getElementById('lbx-cnt');
+  /* ── WAIT FOR DOM ── */
+  document.addEventListener('DOMContentLoaded', function () {
 
-  /* ═══════════════════════════════════════════════════
-     2. STICKY HEADER + BACK-TO-TOP
-  ═══════════════════════════════════════════════════ */
-  function handleScroll(){
-    var y = window.pageYOffset || document.documentElement.scrollTop;
+    /* ── ELEMENTS ─────────────────────────────────────────────── */
+    var HEADER   = document.getElementById('site-header');
+    var BURGER   = document.getElementById('burger');
+    var NAVLIST  = document.getElementById('nav-list');
+    var BTT      = document.getElementById('btt');
+    var SLIDES   = document.querySelectorAll('.hs');
+    var DOTS_ROW = document.getElementById('hero-dots');
+    var GAL      = document.getElementById('gallery-grid');
+    var LBOX     = document.getElementById('lightbox');
+    var LB_IMG   = document.getElementById('lb-img');
+    var LB_X     = document.getElementById('lb-x');
+    var LB_PREV  = document.getElementById('lb-prev');
+    var LB_NEXT  = document.getElementById('lb-next');
+    var LB_CNT   = document.getElementById('lb-cnt');
 
-    /* header */
-    if(y > 60){ hdr.classList.add('scrolled'); }
-    else       { hdr.classList.remove('scrolled'); }
+    /* ============================================================
+       1. SCROLL — header style + back-to-top visibility
+    ============================================================ */
+    function onScroll() {
+      var y = window.pageYOffset || document.documentElement.scrollTop;
+      HEADER.classList[y > 60  ? 'add' : 'remove']('scrolled');
+      BTT.classList[y > 400 ? 'add' : 'remove']('show');
+      revealCheck();
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); /* run immediately on load */
 
-    /* back-to-top */
-    if(y > 400){ btt.classList.add('show'); }
-    else        { btt.classList.remove('show'); }
-
-    /* scroll reveal */
-    revealCheck();
-  }
-
-  window.addEventListener('scroll', handleScroll, {passive:true});
-  handleScroll(); /* run on load */
-
-  /* ═══════════════════════════════════════════════════
-     3. BACK TO TOP — click
-  ═══════════════════════════════════════════════════ */
-  if(btt){
-    btt.addEventListener('click', function(){
-      window.scrollTo({top:0, behavior:'smooth'});
+    /* ============================================================
+       2. BACK TO TOP
+    ============================================================ */
+    BTT.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-  }
 
-  /* ═══════════════════════════════════════════════════
-     4. BURGER / MOBILE NAV
-     — The ONLY thing that should toggle .open on nmenu
-  ═══════════════════════════════════════════════════ */
-  var menuOpen = false;
+    /* ============================================================
+       3. BURGER MENU
+    ============================================================ */
+    var isOpen = false;
 
-  function openMenu(){
-    menuOpen = true;
-    nmenu.classList.add('open');
-    hbg.classList.add('open');
-    hbg.setAttribute('aria-expanded','true');
-    document.body.style.overflow = ''; /* don't lock body scroll */
-  }
+    function openNav() {
+      isOpen = true;
+      NAVLIST.classList.add('open');
+      BURGER.classList.add('open');
+      BURGER.setAttribute('aria-expanded', 'true');
+    }
 
-  function closeMenu(){
-    menuOpen = false;
-    nmenu.classList.remove('open');
-    hbg.classList.remove('open');
-    hbg.setAttribute('aria-expanded','false');
-  }
+    function closeNav() {
+      isOpen = false;
+      NAVLIST.classList.remove('open');
+      BURGER.classList.remove('open');
+      BURGER.setAttribute('aria-expanded', 'false');
+    }
 
-  if(hbg && nmenu){
-    hbg.addEventListener('click', function(e){
+    /* Click burger button */
+    BURGER.addEventListener('click', function (e) {
       e.stopPropagation();
-      if(menuOpen){ closeMenu(); } else { openMenu(); }
+      isOpen ? closeNav() : openNav();
     });
 
-    /* Close when a nav link is tapped */
-    nmenu.querySelectorAll('.nlink').forEach(function(a){
-      a.addEventListener('click', function(){
-        closeMenu();
+    /* Click any nav link — close drawer and scroll */
+    var allNavLinks = NAVLIST.querySelectorAll('.nl');
+    allNavLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        closeNav();
       });
     });
 
-    /* Close when tapping outside */
-    document.addEventListener('click', function(e){
-      if(menuOpen && !hdr.contains(e.target)){
-        closeMenu();
+    /* Click outside header */
+    document.addEventListener('click', function (e) {
+      if (isOpen && !HEADER.contains(e.target)) {
+        closeNav();
       }
     });
 
-    /* Close on Escape */
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && menuOpen){ closeMenu(); }
+    /* Escape key */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (isOpen)    closeNav();
+        if (lbIsOpen)  closeLbox();
+      }
     });
-  }
 
-  /* ═══════════════════════════════════════════════════
-     5. SMOOTH ANCHOR SCROLL (offset for fixed header)
-  ═══════════════════════════════════════════════════ */
-  document.querySelectorAll('a[href^="#"]').forEach(function(a){
-    a.addEventListener('click', function(e){
-      var hash = a.getAttribute('href');
-      if(hash === '#') return;
-      var target = document.querySelector(hash);
-      if(!target) return;
-      e.preventDefault();
-      var offset = (hdr ? hdr.offsetHeight : 72) + 8;
-      var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
-      window.scrollTo({top: top, behavior:'smooth'});
+    /* ============================================================
+       4. SMOOTH SCROLL — offset for fixed header
+    ============================================================ */
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var id = a.getAttribute('href');
+        if (!id || id === '#') return;
+        var target = document.querySelector(id);
+        if (!target) return;
+        e.preventDefault();
+        closeNav();
+        var navH = HEADER ? HEADER.offsetHeight : 70;
+        var top  = target.getBoundingClientRect().top + window.pageYOffset - navH - 8;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      });
     });
-  });
 
-  /* ═══════════════════════════════════════════════════
-     6. HERO SLIDESHOW — auto every 2.5 s
-  ═══════════════════════════════════════════════════ */
-  var curSlide = 0;
-  var slideTimer = null;
-  var dots = [];
+    /* ============================================================
+       5. HERO SLIDESHOW — changes every 2.5 seconds
+    ============================================================ */
+    var curSlide  = 0;
+    var dotBtns   = [];
+    var slideTimer;
 
-  /* Build dots dynamically */
-  if(sdotsWrap && slides.length){
-    slides.forEach(function(_,i){
-      var btn = document.createElement('button');
-      btn.className = 'sdot' + (i===0?' active':'');
-      btn.setAttribute('aria-label','Slide '+(i+1));
-      btn.dataset.s = i;
-      sdotsWrap.appendChild(btn);
-      dots.push(btn);
-      btn.addEventListener('click',function(){
+    /* Build dots */
+    SLIDES.forEach(function (_, i) {
+      var d = document.createElement('button');
+      d.className = 'hd' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      DOTS_ROW.appendChild(d);
+      dotBtns.push(d);
+      d.addEventListener('click', function () {
         goSlide(i);
         resetTimer();
       });
     });
-  }
 
-  function goSlide(n){
-    slides[curSlide].classList.remove('active');
-    if(dots[curSlide]) dots[curSlide].classList.remove('active');
-    curSlide = (n + slides.length) % slides.length;
-    slides[curSlide].classList.add('active');
-    if(dots[curSlide]) dots[curSlide].classList.add('active');
-  }
+    function goSlide(n) {
+      SLIDES[curSlide].classList.remove('active');
+      dotBtns[curSlide].classList.remove('active');
+      curSlide = (n + SLIDES.length) % SLIDES.length;
+      SLIDES[curSlide].classList.add('active');
+      dotBtns[curSlide].classList.add('active');
+    }
 
-  function tick(){ goSlide(curSlide + 1); }
+    function resetTimer() {
+      clearInterval(slideTimer);
+      slideTimer = setInterval(function () { goSlide(curSlide + 1); }, 2500);
+    }
 
-  function startTimer(){
-    slideTimer = setInterval(tick, 2500); /* 2.5 seconds */
-  }
+    if (SLIDES.length > 1) resetTimer();
 
-  function resetTimer(){
-    clearInterval(slideTimer);
-    startTimer();
-  }
+    /* ============================================================
+       6. GALLERY LIGHTBOX
+    ============================================================ */
+    var galImgs  = [];
+    var curImg   = 0;
+    var lbIsOpen = false;
 
-  if(slides.length > 1){ startTimer(); }
+    if (GAL) {
+      GAL.querySelectorAll('.gi').forEach(function (item, i) {
+        var img = item.querySelector('img');
+        if (img) galImgs.push(img.src);
+        item.addEventListener('click', function () { openLbox(i); });
+      });
+    }
 
-  /* ═══════════════════════════════════════════════════
-     7. GALLERY LIGHTBOX
-  ═══════════════════════════════════════════════════ */
-  var galImgs = [];
-  var curImg  = 0;
+    LB_IMG.style.transition = 'opacity 0.15s ease';
 
-  if(galGrid){
-    galGrid.querySelectorAll('.gi').forEach(function(gi,i){
-      var img = gi.querySelector('img');
-      if(img) galImgs.push(img.src);
-      gi.addEventListener('click', function(){ openLbox(i); });
+    function openLbox(i) {
+      curImg = i;
+      LB_IMG.src = galImgs[i];
+      LB_CNT.textContent = (i + 1) + ' / ' + galImgs.length;
+      LBOX.classList.add('open');
+      lbIsOpen = true;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLbox() {
+      LBOX.classList.remove('open');
+      lbIsOpen = false;
+      document.body.style.overflow = '';
+      setTimeout(function () { if (!lbIsOpen) LB_IMG.src = ''; }, 350);
+    }
+
+    function showImg(i) {
+      curImg = (i + galImgs.length) % galImgs.length;
+      LB_IMG.style.opacity = '0';
+      setTimeout(function () {
+        LB_IMG.src = galImgs[curImg];
+        LB_CNT.textContent = (curImg + 1) + ' / ' + galImgs.length;
+        LB_IMG.style.opacity = '1';
+      }, 130);
+    }
+
+    LB_X.addEventListener('click', closeLbox);
+    LB_PREV.addEventListener('click', function () { showImg(curImg - 1); });
+    LB_NEXT.addEventListener('click', function () { showImg(curImg + 1); });
+    LBOX.addEventListener('click',    function (e) { if (e.target === LBOX) closeLbox(); });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lbIsOpen) return;
+      if (e.key === 'ArrowLeft')  showImg(curImg - 1);
+      if (e.key === 'ArrowRight') showImg(curImg + 1);
     });
-  }
 
-  function openLbox(i){
-    curImg = i;
-    lbxImg.src = galImgs[i];
-    updateCount();
-    lbox.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
+    /* Touch swipe */
+    var tx = 0;
+    LBOX.addEventListener('touchstart', function (e) { tx = e.changedTouches[0].clientX; }, { passive: true });
+    LBOX.addEventListener('touchend',   function (e) {
+      var dx = e.changedTouches[0].clientX - tx;
+      if (Math.abs(dx) > 40) dx < 0 ? showImg(curImg + 1) : showImg(curImg - 1);
+    });
 
-  function closeLbox(){
-    lbox.classList.remove('open');
-    document.body.style.overflow = '';
-    setTimeout(function(){ if(!lbox.classList.contains('open')) lbxImg.src=''; }, 350);
-  }
+    /* ============================================================
+       7. SCROLL REVEAL
+    ============================================================ */
+    var fuEls = document.querySelectorAll('.fu');
 
-  function showImg(i){
-    curImg = (i + galImgs.length) % galImgs.length;
-    lbxImg.style.opacity = '0';
-    setTimeout(function(){
-      lbxImg.src = galImgs[curImg];
-      updateCount();
-      lbxImg.style.opacity = '1';
-    }, 120);
-  }
-
-  function updateCount(){
-    if(lbxCnt) lbxCnt.textContent = (curImg+1) + ' / ' + galImgs.length;
-  }
-
-  lbxImg.style.transition = 'opacity .15s ease';
-
-  if(lbxClose) lbxClose.addEventListener('click', closeLbox);
-  if(lbxPrev)  lbxPrev.addEventListener('click',  function(){ showImg(curImg-1); });
-  if(lbxNext)  lbxNext.addEventListener('click',  function(){ showImg(curImg+1); });
-
-  lbox.addEventListener('click', function(e){
-    if(e.target === lbox) closeLbox();
-  });
-
-  document.addEventListener('keydown', function(e){
-    if(!lbox.classList.contains('open')) return;
-    if(e.key === 'Escape')      closeLbox();
-    if(e.key === 'ArrowLeft')   showImg(curImg-1);
-    if(e.key === 'ArrowRight')  showImg(curImg+1);
-  });
-
-  /* Touch swipe */
-  var tx = 0;
-  lbox.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].clientX; }, {passive:true});
-  lbox.addEventListener('touchend',   function(e){
-    var dx = e.changedTouches[0].clientX - tx;
-    if(Math.abs(dx) > 40){ dx < 0 ? showImg(curImg+1) : showImg(curImg-1); }
-  });
-
-  /* ═══════════════════════════════════════════════════
-     8. SCROLL REVEAL
-  ═══════════════════════════════════════════════════ */
-  var revItems = document.querySelectorAll('.reveal');
-
-  var revObs = null;
-  if('IntersectionObserver' in window){
-    revObs = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if(entry.isIntersecting){
-          entry.target.classList.add('vis');
-          revObs.unobserve(entry.target);
+    function revealCheck() {
+      var vh = window.innerHeight;
+      fuEls.forEach(function (el) {
+        if (el.getBoundingClientRect().top < vh - 24) {
+          el.classList.add('visible');
         }
       });
-    }, {threshold:0.12, rootMargin:'0px 0px -24px 0px'});
+    }
 
-    revItems.forEach(function(el){ revObs.observe(el); });
-  } else {
-    /* Fallback: just show all */
-    revItems.forEach(function(el){ el.classList.add('vis'); });
-  }
-
-  function revealCheck(){
-    revItems.forEach(function(el){
-      var r = el.getBoundingClientRect();
-      if(r.top < window.innerHeight - 24){ el.classList.add('vis'); }
-    });
-  }
-  revealCheck();
-
-  /* ═══════════════════════════════════════════════════
-     9. STATS COUNTER
-  ═══════════════════════════════════════════════════ */
-  var statsBar  = document.querySelector('.stats-bar');
-  var counted   = false;
-
-  if(statsBar){
-    var sObs = new IntersectionObserver(function(entries){
-      if(entries[0].isIntersecting && !counted){
-        counted = true;
-        document.querySelectorAll('.stt-n').forEach(function(el){
-          var raw    = el.getAttribute('data-target') || el.textContent;
-          var suffix = el.getAttribute('data-suffix') || '';
-          var target = parseInt(raw, 10);
-          if(isNaN(target)) return;
-          var dur = 1400, start = performance.now();
-          (function tick(now){
-            var p = Math.min((now-start)/dur, 1);
-            var v = Math.round((1 - Math.pow(1-p,3)) * target);
-            el.textContent = v + suffix;
-            if(p < 1) requestAnimationFrame(tick);
-          })(start);
+    /* IntersectionObserver for better performance */
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
         });
-      }
-    },{threshold:0.5});
-    sObs.observe(statsBar);
-  }
+      }, { threshold: 0.1, rootMargin: '0px 0px -24px 0px' });
+      fuEls.forEach(function (el) { io.observe(el); });
+    }
 
-  console.log('✅ Mettaloka Youth Centre — ready');
+    revealCheck();
 
-}); /* end DOMContentLoaded */
+    /* ============================================================
+       8. STATS COUNTER
+    ============================================================ */
+    var statsBar  = document.querySelector('.stats-strip');
+    var counted   = false;
 
-})();
+    if (statsBar && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting || counted) return;
+        counted = true;
+        document.querySelectorAll('.ss-num').forEach(function (el) {
+          var target = parseInt(el.getAttribute('data-to'), 10);
+          var suffix = el.getAttribute('data-sfx') || '';
+          if (isNaN(target)) return;
+          var dur = 1400, t0 = performance.now();
+          (function frame(now) {
+            var p = Math.min((now - t0) / dur, 1);
+            el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target) + suffix;
+            if (p < 1) requestAnimationFrame(frame);
+          })(t0);
+        });
+      }, { threshold: 0.5 }).observe(statsBar);
+    }
+
+    /* ── DONE ─────────────────────────────────────────────────── */
+    console.log('✅ Mettaloka Youth Centre — All systems ready');
+    console.log('🏠 Est. 2003 · Brotherhood · Discipline · Learning');
+
+  }); /* end DOMContentLoaded */
+
+}());
