@@ -423,6 +423,23 @@
   </svg>
 </button>
 
+<!-- BACKGROUND MUSIC — no autoplay, user-triggered only -->
+<audio id="bg-music" loop preload="none">
+  <source src="https://raw.githubusercontent.com/chiranjitchakma/METTALOKA-YOUTH-CENTRE-MYSORE/main/Relaxing%20music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Floating music player button -->
+<button id="music-btn" class="music-btn" aria-label="Play background music" data-label="Play music">
+  <!-- Play icon (shown when paused) -->
+  <svg id="music-icon-play" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5.14v14l11-7-11-7z"/>
+  </svg>
+  <!-- Pause icon (hidden when paused) -->
+  <svg id="music-icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+  </svg>
+</button>
+
 <script src="script.js"></script>
 </body>
 </html>
