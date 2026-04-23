@@ -366,12 +366,17 @@
         var isNow = false;
 
         if (endMins === 0 && tH === 6) {
-          /* Overnight slot: 11:15 PM → 6:00 AM */
-          isNow = (nowMins >= startMins || nowMins < 360); /* 360 = 6*60 */
+          /* Overnight slot: 11:15 PM → 6:00 AM
+             data-to="6" data-tomin="0" → endMins = 360, NOT 0
+             So we must check using startMins > endMins pattern */
+          isNow = (nowMins >= startMins || nowMins < 360);
+        } else if (startMins > endMins) {
+          /* Generic overnight: e.g. start 23:15 (=1395), end 6:00 (=360) */
+          isNow = (nowMins >= startMins || nowMins < endMins);
         } else if (startMins < endMins) {
           isNow = (nowMins >= startMins && nowMins < endMins);
-        } else if (startMins === endMins) {
-          /* Wake-up slot at 6:00 — just the first minute */
+        } else {
+          /* startMins === endMins: single point (wake-up 6:00) */
           isNow = (nowMins === startMins);
         }
 
@@ -419,6 +424,57 @@
     }
 
     console.log('✅ Mettaloka Youth Centre — fully loaded');
+
+    /* ============================================================
+       12. BACKGROUND MUSIC — floating play/pause button
+           No autoplay. User must click. Remembers state.
+    ============================================================ */
+    var musicBtn   = document.getElementById('music-btn');
+    var bgMusic    = document.getElementById('bg-music');
+    var iconPlay   = document.getElementById('music-icon-play');
+    var iconPause  = document.getElementById('music-icon-pause');
+
+    if (musicBtn && bgMusic) {
+      var isPlaying = false;
+
+      function setPlaying(playing) {
+        isPlaying = playing;
+        if (playing) {
+          iconPlay.style.display  = 'none';
+          iconPause.style.display = '';
+          musicBtn.classList.add('playing');
+          musicBtn.setAttribute('aria-label', 'Pause background music');
+          musicBtn.setAttribute('data-label', 'Pause music');
+        } else {
+          iconPlay.style.display  = '';
+          iconPause.style.display = 'none';
+          musicBtn.classList.remove('playing');
+          musicBtn.setAttribute('aria-label', 'Play background music');
+          musicBtn.setAttribute('data-label', 'Play music');
+        }
+      }
+
+      musicBtn.addEventListener('click', function () {
+        if (isPlaying) {
+          bgMusic.pause();
+          setPlaying(false);
+        } else {
+          bgMusic.volume = 0.35; /* gentle background volume */
+          bgMusic.play().then(function () {
+            setPlaying(true);
+          }).catch(function () {
+            /* Browser blocked — still show paused state */
+            setPlaying(false);
+          });
+        }
+      });
+
+      /* If audio ends unexpectedly, reset UI */
+      bgMusic.addEventListener('ended', function () { setPlaying(false); });
+      bgMusic.addEventListener('pause', function () {
+        if (!bgMusic.ended) setPlaying(false);
+      });
+    }
 
   }); /* end DOMContentLoaded */
 
