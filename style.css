@@ -1006,57 +1006,95 @@ p {font-size:.945rem;line-height:1.82}
 .footer-love{color:rgba(217,123,28,.58)!important}
 
 /* ════════════════════════════════════════
-   BACK TO TOP
+   FLOATING BUTTON STACK — right side
+   Both buttons stacked perfectly: music above btt
+   Safe-area aware for notched phones
 ════════════════════════════════════════ */
-.btt{
-  position:fixed;bottom:1.8rem;right:1.8rem;z-index:9000;
-  width:44px;height:44px;border-radius:50%;
-  background:var(--accent);color:#fff;
+
+/* Shared floating button base */
+.float-btn-base {
+  position:fixed;
+  right:max(1.4rem, env(safe-area-inset-right, 1.4rem));
+  z-index:9000;
+  width:46px;height:46px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  /* hardware-accelerated */
+  will-change:transform,opacity;
+}
+
+/* ── Back to top ──────────────────────── */
+.btt{
+  bottom:max(1.4rem, env(safe-area-inset-bottom, 1.4rem));
+  background:var(--accent);color:#fff;
+  border:none;
   box-shadow:var(--sg);
   opacity:0;transform:translateY(16px) scale(.88);
-  transition:opacity .3s,transform .4s var(--spring),background .3s,box-shadow .3s;
+  transition:opacity .32s,transform .42s var(--spring),
+             background .28s,box-shadow .28s;
   pointer-events:none;
 }
-.btt svg{width:17px;height:17px}
-.btt.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
-.btt.show:not(:hover){animation:bttBreath 4s ease infinite}
-@keyframes bttBreath{
+.btt svg{width:17px;height:17px;display:block}
+.btt.show{
+  opacity:1;transform:translateY(0) scale(1);
+  pointer-events:all;
+}
+.btt.show:not(:hover){animation:bttPulse 4s ease infinite}
+@keyframes bttPulse{
   0%,100%{box-shadow:var(--sg)}
-  50%    {box-shadow:var(--sg3)}
+  50%    {box-shadow:0 8px 32px rgba(217,123,28,.55),0 0 0 6px rgba(217,123,28,.12)}
 }
-.btt:hover{background:var(--accent-hi);transform:translateY(-3px) scale(1.1);box-shadow:var(--sg2)}
+.btt:hover{
+  background:var(--accent-hi);
+  transform:translateY(-4px) scale(1.1);
+  box-shadow:var(--sg2);
+}
 
-/* ════════════════════════════════════════
-   MUSIC PLAYER
-════════════════════════════════════════ */
+/* ── Music player ──────────────────────── */
 .music-btn{
-  position:fixed;bottom:5.5rem;right:1.8rem;z-index:9000;
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(22,10,4,.88);
+  /* sits exactly (btt-bottom + btt-height + 12px gap) above btt */
+  bottom:calc(max(1.4rem, env(safe-area-inset-bottom, 1.4rem)) + 46px + 12px);
+  background:rgba(18,8,3,.88);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1.5px solid rgba(217,123,28,.42);color:var(--accent-lt);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 22px rgba(16,9,5,.32);cursor:pointer;
-  transition:background .3s,border-color .3s,box-shadow .3s,transform .4s var(--spring);
+  border:1.5px solid rgba(217,123,28,.40);
+  color:var(--accent-lt);
+  box-shadow:0 4px 20px rgba(14,7,3,.35);
+  transition:background .28s,border-color .28s,
+             box-shadow .28s,transform .42s var(--spring);
 }
-.music-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.12);box-shadow:var(--sg2)}
-.music-btn.playing{border-color:var(--accent-lt);animation:musicRing 3s ease infinite}
+.music-btn:hover{
+  background:var(--accent);border-color:var(--accent);
+  color:#fff;transform:scale(1.12);box-shadow:var(--sg2);
+}
+.music-btn.playing{
+  border-color:var(--accent-lt);
+  animation:musicRing 3s ease infinite;
+}
 @keyframes musicRing{
-  0%  {box-shadow:0 4px 22px rgba(16,9,5,.32),0 0 0 2px rgba(217,123,28,.28),0 0 12px rgba(217,123,28,.18)}
-  50% {box-shadow:0 4px 22px rgba(16,9,5,.32),0 0 0 8px rgba(217,123,28,0), 0 0 22px rgba(217,123,28,.10)}
-  100%{box-shadow:0 4px 22px rgba(16,9,5,.32),0 0 0 2px rgba(217,123,28,.28),0 0 12px rgba(217,123,28,.18)}
+  0%  {box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 2px rgba(217,123,28,.30),0 0 14px rgba(217,123,28,.20)}
+  50% {box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 8px rgba(217,123,28,0), 0 0 24px rgba(217,123,28,.08)}
+  100%{box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 2px rgba(217,123,28,.30),0 0 14px rgba(217,123,28,.20)}
 }
-.music-btn svg{width:18px;height:18px;flex-shrink:0}
+.music-btn svg{width:18px;height:18px;flex-shrink:0;display:block}
+
+/* Tooltip label — left of button */
 .music-btn::before{
   content:attr(data-label);
-  position:absolute;right:52px;top:50%;transform:translateY(-50%);
-  background:rgba(16,9,5,.92);backdrop-filter:blur(8px);
-  color:var(--od);font-size:.72rem;font-weight:500;white-space:nowrap;
-  padding:.3rem .72rem;border-radius:var(--r1);border:1px solid rgba(217,123,28,.24);
-  opacity:0;pointer-events:none;transition:opacity .22s ease;
+  position:absolute;right:calc(100% + 10px);top:50%;
+  transform:translateY(-50%);
+  background:rgba(14,7,3,.92);backdrop-filter:blur(10px);
+  color:var(--od);font-size:.71rem;font-weight:500;
+  white-space:nowrap;
+  padding:.3rem .75rem;border-radius:var(--r1);
+  border:1px solid rgba(217,123,28,.22);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+  transform:translateY(-50%) translateX(4px);
 }
-.music-btn:hover::before{opacity:1}
+.music-btn:hover::before{
+  opacity:1;
+  transform:translateY(-50%) translateX(0);
+}
 
 /* ════════════════════════════════════════
    RESPONSIVE — TABLET ≤ 1024
@@ -1066,6 +1104,10 @@ p {font-size:.945rem;line-height:1.82}
   .carla-grid {grid-template-columns:1fr;gap:2.5rem}
   .gallery-masonry{column-count:3}
 }
+
+/* ════════════════════════════════════════
+   RESPONSIVE — TABLET/MOBILE ≤ 900
+════════════════════════════════════════ */
 @media(max-width:900px){
   .centres-grid{grid-template-columns:1fr}
   .life-grid   {grid-template-columns:1fr}
@@ -1074,33 +1116,88 @@ p {font-size:.945rem;line-height:1.82}
   .prog-grid   {grid-template-columns:1fr}
   .contact-grid{grid-template-columns:1fr}
 }
+
+/* ════════════════════════════════════════
+   RESPONSIVE — MOBILE ≤ 600
+════════════════════════════════════════ */
 @media(max-width:600px){
-  .sec   {padding:clamp(2.6rem,7vw,3.5rem) 0}
-  .lc-hd {padding:.95rem var(--gutter) .82rem}
-  .lc-bd {padding:.95rem var(--gutter) 1.1rem}
-  .cc-top{padding:1.3rem var(--gutter) 1.3rem}
-  .cc-body{padding:1rem var(--gutter)}
-  .con-card{padding:1.2rem var(--gutter)}
-  .ac   {padding:1.1rem 1.2rem}
-  .pg   {padding:1.2rem 1.1rem}
-  .cstat{padding:.8rem .9rem}
+  /* Section rhythm */
+  .sec{padding:clamp(2.4rem,7vw,3.5rem) 0}
+
+  /* All internal card paddings use --gutter consistently */
+  .lc-hd  {padding:.9rem var(--gutter) .8rem}
+  .lc-bd  {padding:.9rem var(--gutter) 1rem}
+  .cc-top {padding:1.2rem var(--gutter) 1.2rem}
+  .cc-body{padding:.95rem var(--gutter) 1.1rem}
+  .con-card{padding:1.1rem var(--gutter)}
+  .ac     {padding:1rem var(--gutter)}
+  .pg     {padding:1.1rem var(--gutter)}
+  .cstat  {padding:.75rem var(--gutter)}
+
+  /* Carla stats — 2 col on mobile */
   .carla-stats{grid-template-columns:1fr 1fr}
+
+  /* Gallery */
   .gallery-masonry{column-count:2;column-gap:.4rem}
-  .gi   {margin-bottom:.4rem}
-  .brand-name{font-size:.78rem}.brand-unit{font-size:.46rem}.brand-img{width:36px;height:36px}
-  .lb-arr{font-size:1.4rem;padding:.44rem .78rem}
-  .lb-prev{left:.4rem}.lb-next{right:.4rem}
-  .quote-band blockquote{font-size:1.22rem}
-  .footer-top{flex-direction:column;gap:1.4rem}
-  .btt  {bottom:1rem;right:1rem;width:40px;height:40px}
-  .music-btn{bottom:4.8rem;right:1rem;width:40px;height:40px}
+  .gi{margin-bottom:.4rem}
+
+  /* Nav brand */
+  .brand-name{font-size:.76rem}
+  .brand-unit{font-size:.44rem}
+  .brand-img {width:35px;height:35px}
+
+  /* Lightbox arrows — smaller + safe edges */
+  .lb-arr  {font-size:1.3rem;padding:.42rem .72rem}
+  .lb-prev {left:.5rem}
+  .lb-next {right:.5rem}
+  .lb-x    {top:.8rem;right:.8rem}
+
+  /* Quote */
+  .quote-band blockquote{font-size:1.18rem}
+
+  /* Footer */
+  .footer-top{flex-direction:column;gap:1.2rem}
+  .footer-nav{gap:.1rem}
+
+  /* Floating buttons — smaller on mobile, safe spacing */
+  .float-btn-base{
+    width:42px;height:42px;
+    right:max(1rem, env(safe-area-inset-right, 1rem));
+  }
+  .btt{
+    bottom:max(1rem, env(safe-area-inset-bottom, 1rem));
+  }
+  .music-btn{
+    bottom:calc(max(1rem, env(safe-area-inset-bottom, 1rem)) + 42px + 10px);
+  }
+  /* Hide tooltip on mobile — no room */
   .music-btn::before{display:none}
-  .sr   {grid-template-columns:clamp(60px,14vw,68px) 13px 1fr;gap:.4rem}
+
+  /* Schedule time column */
+  .sr{grid-template-columns:clamp(58px,13vw,66px) 12px 1fr;gap:.38rem}
 }
+
+/* ════════════════════════════════════════
+   RESPONSIVE — EXTRA SMALL ≤ 380
+════════════════════════════════════════ */
 @media(max-width:380px){
-  .brand-unit{display:none}
+  .brand-unit  {display:none}
   .gallery-masonry{column-count:1}
-  .carla-stats{grid-template-columns:1fr}
-  .cc-body{padding:.9rem var(--gutter)}
-  .con-card{padding:1rem var(--gutter)}
+  .carla-stats {grid-template-columns:1fr}
+  .cc-body     {padding:.85rem var(--gutter)}
+  .con-card    {padding:.95rem var(--gutter)}
+  .ac          {padding:.9rem var(--gutter)}
+  .pg          {padding:.95rem var(--gutter)}
+
+  /* Floating buttons even tighter on tiny phones */
+  .float-btn-base{
+    width:40px;height:40px;
+    right:max(.85rem, env(safe-area-inset-right, .85rem));
+  }
+  .btt{
+    bottom:max(.85rem, env(safe-area-inset-bottom, .85rem));
+  }
+  .music-btn{
+    bottom:calc(max(.85rem, env(safe-area-inset-bottom, .85rem)) + 40px + 10px);
+  }
 }
