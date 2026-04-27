@@ -23,80 +23,122 @@
     var LBCNT     = document.getElementById('lb-cnt');
 
     /* ============================================================
-       1. PREMIUM MOTION SYSTEM
-       ─ 4 reveal types: reveal / reveal-scale / reveal-left / reveal-right
-       ─ Auto-assigned by element type
-       ─ Staggered within sibling groups
-       ─ IntersectionObserver with rootMargin for smooth pre-reveal
-       ─ Elements always visible if JS slow (hidden only after rAF)
+       1. PAGE LOADER — fades out after page ready
+    ============================================================ */
+    var loader = document.getElementById('page-loader');
+    if (loader) {
+      window.addEventListener('load', function () {
+        setTimeout(function () { loader.classList.add('done'); }, 200);
+      });
+      /* Fallback — always remove after 2s */
+      setTimeout(function () { loader.classList.add('done'); }, 2000);
+    }
+
+    /* ============================================================
+       2. SCROLL-PROGRESS BAR
+    ============================================================ */
+    var scrollBar = document.getElementById('scroll-bar');
+    function updateScrollBar() {
+      if (!scrollBar) return;
+      var el  = document.documentElement;
+      var pct = (el.scrollTop || document.body.scrollTop) / ((el.scrollHeight || document.body.scrollHeight) - el.clientHeight);
+      scrollBar.style.width = (Math.min(pct * 100, 100)) + '%';
+    }
+    window.addEventListener('scroll', updateScrollBar, { passive: true });
+
+    /* ============================================================
+       3. SECTION DIVIDERS — draw-in on scroll
+    ============================================================ */
+    function injectDividers() {
+      document.querySelectorAll('.sec-h, .sec-hl').forEach(function (h) {
+        /* Only once per section-heading */
+        if (h.nextElementSibling && h.nextElementSibling.classList.contains('sec-divider')) return;
+        var d = document.createElement('div');
+        d.className = 'sec-divider' + (h.classList.contains('sec-hl') ? ' sec-divider-lt' : '');
+        h.after(d);
+      });
+    }
+    injectDividers();
+
+    /* ============================================================
+       4. HERO PARTICLES — 8 floating amber orbs
+    ============================================================ */
+    (function spawnParticles() {
+      var heroEl = document.querySelector('.hero');
+      if (!heroEl) return;
+      for (var i = 0; i < 8; i++) {
+        var p = document.createElement('div');
+        p.className = 'hero-particle';
+        var size = (Math.random() * 6 + 3) + 'px';
+        p.style.cssText = [
+          'width:' + size, 'height:' + size,
+          'left:' + (Math.random() * 90 + 5) + '%',
+          'bottom:' + (Math.random() * 30) + '%',
+          'animation-duration:' + (Math.random() * 8 + 6) + 's',
+          'animation-delay:-' + (Math.random() * 8) + 's',
+          'opacity:' + (Math.random() * 0.4 + 0.1)
+        ].join(';');
+        heroEl.appendChild(p);
+      }
+    })();
+
+    /* ============================================================
+       5. CORE MOTION SYSTEM
+          Each element type gets a distinct animation class.
+          All groups stagger with progressive delays.
+          IntersectionObserver triggers per-element.
     ============================================================ */
 
-    /* Assign reveal types by element role */
+    /* Step A — assign unique animation type by element role */
     function assignRevealTypes() {
-      /* About cards → scale */
-      document.querySelectorAll('.ac').forEach(function(el) {
-        el.classList.add('reveal-scale');
-      });
-      /* Carla stat boxes → scale */
-      document.querySelectorAll('.cstat').forEach(function(el) {
-        el.classList.add('reveal-scale');
-      });
-      /* Centre cards → scale */
-      document.querySelectorAll('.cc-card').forEach(function(el) {
-        el.classList.add('reveal-scale');
-      });
-      /* Programme cards → scale */
-      document.querySelectorAll('.pg').forEach(function(el) {
-        el.classList.add('reveal-scale');
-      });
-      /* Life cards → scale */
-      document.querySelectorAll('.lc').forEach(function(el) {
-        el.classList.add('reveal-scale');
-      });
-      /* About left → from left */
-      document.querySelectorAll('.about-left').forEach(function(el) {
-        el.classList.add('reveal', 'reveal-left');
-      });
-      /* About right → from right */
-      document.querySelectorAll('.about-right').forEach(function(el) {
-        el.classList.add('reveal', 'reveal-right');
-      });
-      /* Contact card left → from left */
-      var contactCards = document.querySelectorAll('.con-card');
-      if (contactCards[0]) contactCards[0].classList.add('reveal-left');
-      if (contactCards[1]) contactCards[1].classList.add('reveal-right');
-      /* Carla left → left, right → right */
-      var carlaLeft  = document.querySelector('.carla-left');
-      var carlaRight = document.querySelector('.carla-right');
-      if (carlaLeft)  carlaLeft.classList.add('reveal-left');
-      if (carlaRight) carlaRight.classList.add('reveal-right');
-    }
-
-    /* Stagger siblings within the same parent group */
-    function applyStagger() {
-      var groups = [
-        '.about-right',
-        '.carla-stats',
-        '.prog-grid',
-        '.centres-grid',
-        '.life-grid'
-      ];
-      groups.forEach(function(sel) {
-        var parent = document.querySelector(sel);
-        if (!parent) return;
-        var children = Array.prototype.slice.call(parent.children);
-        children.forEach(function(child, i) {
-          if (i < 6) child.classList.add('stagger-' + (i + 1));
+      /* Cards that pop with spring scale */
+      ['.ac', '.cstat', '.cc-card', '.pg', '.lc', '.nc', '.con-card'].forEach(function(sel) {
+        document.querySelectorAll(sel).forEach(function(el) {
+          el.classList.add('reveal-scale');
+          el.classList.add('grad-border'); /* animated gradient border */
         });
       });
-      /* Stagger step items */
-      document.querySelectorAll('.step').forEach(function(el, i) {
-        if (i < 6) el.classList.add('stagger-' + (i + 1));
+      /* Directional slides for two-column layouts */
+      var about = document.querySelector('.about-left');
+      var aboutR = document.querySelector('.about-right');
+      if (about)  about.classList.add('reveal-left');
+      if (aboutR) aboutR.classList.add('reveal-right');
+
+      var carlaL = document.querySelector('.carla-left');
+      var carlaR = document.querySelector('.carla-right');
+      if (carlaL) carlaL.classList.add('reveal-left');
+      if (carlaR) carlaR.classList.add('reveal-right');
+
+      var cc = document.querySelectorAll('.con-card');
+      if (cc[0]) cc[0].classList.add('reveal-left');
+      if (cc[1]) cc[1].classList.add('reveal-right');
+
+      /* Steps — reveal from left one by one */
+      document.querySelectorAll('.step').forEach(function(el) {
+        el.classList.add('reveal-left');
+      });
+
+      /* Section dividers — just .show class toggled */
+    }
+
+    /* Step B — stagger children of grid parents */
+    function applyStagger() {
+      ['.about-right', '.carla-stats', '.prog-grid', '.centres-grid', '.life-grid', '.step'].forEach(function(sel) {
+        var nodes;
+        if (sel === '.step') {
+          nodes = Array.prototype.slice.call(document.querySelectorAll('.step'));
+        } else {
+          var p = document.querySelector(sel);
+          if (!p) return;
+          nodes = Array.prototype.slice.call(p.children);
+        }
+        nodes.forEach(function(el, i) {
+          if (i < 6) el.classList.add('stagger-' + (i + 1));
+        });
       });
     }
 
-    /* Collect ALL reveal types */
-    var ALL_REVEAL = '.reveal, .reveal-scale, .reveal-left, .reveal-right';
+    var ALL_REVEAL = '.reveal,.reveal-scale,.reveal-left,.reveal-right';
 
     function getAllRevealEls() {
       return Array.prototype.slice.call(document.querySelectorAll(ALL_REVEAL));
@@ -105,14 +147,17 @@
     function initReveal() {
       var vh = window.innerHeight;
       getAllRevealEls().forEach(function(el) {
-        var r = el.getBoundingClientRect();
-        if (r.top > vh - 20) el.classList.add('hidden');
+        if (el.getBoundingClientRect().top > vh - 20) el.classList.add('hidden');
+      });
+      /* Also hide dividers */
+      document.querySelectorAll('.sec-divider').forEach(function(d) {
+        if (d.getBoundingClientRect().top > vh) d._needsShow = true;
       });
     }
 
     function triggerReveal(el) {
-      el.classList.add('show');
       el.classList.remove('hidden');
+      el.classList.add('show');
     }
 
     function checkReveal() {
@@ -122,26 +167,36 @@
           triggerReveal(el);
         }
       });
+      /* Dividers */
+      document.querySelectorAll('.sec-divider').forEach(function(d) {
+        if (d._needsShow && d.getBoundingClientRect().top < vh - 20) {
+          d.classList.add('show');
+          d._needsShow = false;
+        }
+      });
     }
 
-    /* Run type assignment and stagger first */
     assignRevealTypes();
     applyStagger();
 
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function(entries) {
         entries.forEach(function(en) {
-          if (en.isIntersecting && en.target.classList.contains('hidden')) {
-            triggerReveal(en.target);
-            io.unobserve(en.target);
-          }
+          if (!en.isIntersecting) return;
+          var el = en.target;
+          if (el.classList.contains('hidden')) { triggerReveal(el); }
+          if (el.classList.contains('sec-divider')) { el.classList.add('show'); }
+          io.unobserve(el);
         });
-      }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+      }, { threshold: 0.08, rootMargin: '0px 0px -28px 0px' });
 
       requestAnimationFrame(function() {
         initReveal();
         getAllRevealEls().forEach(function(el) {
           if (el.classList.contains('hidden')) io.observe(el);
+        });
+        document.querySelectorAll('.sec-divider').forEach(function(d) {
+          if (d._needsShow) io.observe(d);
         });
       });
     } else {
@@ -348,11 +403,13 @@
           var to  = parseInt(el.getAttribute('data-to'), 10);
           var sfx = el.getAttribute('data-sfx') || '';
           if (isNaN(to)) return;
-          var dur = 1400, t0 = performance.now();
+          el.classList.add('counting');
+          var dur = 1800, t0 = performance.now();
           (function frame(now) {
             var p = Math.min((now - t0) / dur, 1);
             el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * to) + sfx;
-            if (p < 1) requestAnimationFrame(frame);
+            if (p < 1) { requestAnimationFrame(frame); }
+            else { setTimeout(function(){ el.classList.remove('counting'); }, 400); }
           })(t0);
         });
       }, { threshold: 0.5 }).observe(sBar);
