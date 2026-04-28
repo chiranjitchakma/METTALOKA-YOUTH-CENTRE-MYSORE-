@@ -34,7 +34,7 @@
   --serif:'Playfair Display',Georgia,serif;
   --sans :'DM Sans',system-ui,-apple-system,sans-serif;
 
-  --gutter:clamp(1rem,5vw,1.5rem);
+  --gutter:clamp(1rem, 4.5vw, 1.5rem);
   --sec-y :clamp(3rem,8vw,6rem);
 
   --r1:5px; --r2:12px; --r3:20px; --r4:32px;
@@ -274,7 +274,7 @@ p {font-size:.945rem;line-height:1.82}
   max-width:1160px;margin:0 auto;padding:0 var(--gutter);
   height:68px;display:flex;align-items:center;justify-content:space-between;gap:1rem;
 }
-.brand{display:flex;align-items:center;gap:.7rem;flex-shrink:0;min-width:0;max-width:calc(100% - 50px)}
+.brand{display:flex;align-items:center;gap:.6rem;flex-shrink:0;min-width:0;max-width:calc(100% - 54px);overflow:hidden}
 .brand-img{
   width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;
   border:2px solid var(--accent);
@@ -1006,198 +1006,246 @@ p {font-size:.945rem;line-height:1.82}
 .footer-love{color:rgba(217,123,28,.58)!important}
 
 /* ════════════════════════════════════════
-   FLOATING BUTTON STACK — right side
-   Both buttons stacked perfectly: music above btt
-   Safe-area aware for notched phones
+   FLOATING BUTTONS — perfectly stacked
+   BTT at bottom-right. Music 58px above it.
+   Both shrink on mobile. No env() needed.
 ════════════════════════════════════════ */
 
-/* Shared floating button base */
+/* Shared base — all fixed-position floaters */
 .float-btn-base {
-  position:fixed;
-  right:max(1.4rem, env(safe-area-inset-right, 1.4rem));
-  z-index:9000;
-  width:46px;height:46px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  /* hardware-accelerated */
-  will-change:transform,opacity;
+  position: fixed;
+  right: 1.5rem;
+  z-index: 9000;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-/* ── Back to top ──────────────────────── */
-.btt{
-  bottom:max(1.4rem, env(safe-area-inset-bottom, 1.4rem));
-  background:var(--accent);color:#fff;
-  border:none;
-  box-shadow:var(--sg);
-  opacity:0;transform:translateY(16px) scale(.88);
-  transition:opacity .32s,transform .42s var(--spring),
-             background .28s,box-shadow .28s;
-  pointer-events:none;
+/* ── Back to top ────────────────────── */
+.btt {
+  bottom: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  box-shadow: var(--sg);
+  opacity: 0;
+  transform: translateY(20px) scale(.85);
+  transition: opacity .3s, transform .4s var(--spring),
+              background .28s, box-shadow .28s;
+  pointer-events: none;
 }
-.btt svg{width:17px;height:17px;display:block}
-.btt.show{
-  opacity:1;transform:translateY(0) scale(1);
-  pointer-events:all;
+.btt svg { width: 17px; height: 17px; display: block; }
+.btt.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
 }
-.btt.show:not(:hover){animation:bttPulse 4s ease infinite}
-@keyframes bttPulse{
-  0%,100%{box-shadow:var(--sg)}
-  50%    {box-shadow:0 8px 32px rgba(217,123,28,.55),0 0 0 6px rgba(217,123,28,.12)}
+.btt.show:not(:hover) { animation: bttPulse 4s ease infinite; }
+@keyframes bttPulse {
+  0%,100% { box-shadow: var(--sg); }
+  50%     { box-shadow: 0 8px 32px rgba(217,123,28,.55), 0 0 0 5px rgba(217,123,28,.12); }
 }
-.btt:hover{
-  background:var(--accent-hi);
-  transform:translateY(-4px) scale(1.1);
-  box-shadow:var(--sg2);
-}
-
-/* ── Music player ──────────────────────── */
-.music-btn{
-  /* sits exactly (btt-bottom + btt-height + 12px gap) above btt */
-  bottom:calc(max(1.4rem, env(safe-area-inset-bottom, 1.4rem)) + 46px + 12px);
-  background:rgba(18,8,3,.88);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1.5px solid rgba(217,123,28,.40);
-  color:var(--accent-lt);
-  box-shadow:0 4px 20px rgba(14,7,3,.35);
-  transition:background .28s,border-color .28s,
-             box-shadow .28s,transform .42s var(--spring);
-}
-.music-btn:hover{
-  background:var(--accent);border-color:var(--accent);
-  color:#fff;transform:scale(1.12);box-shadow:var(--sg2);
-}
-.music-btn.playing{
-  border-color:var(--accent-lt);
-  animation:musicRing 3s ease infinite;
-}
-@keyframes musicRing{
-  0%  {box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 2px rgba(217,123,28,.30),0 0 14px rgba(217,123,28,.20)}
-  50% {box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 8px rgba(217,123,28,0), 0 0 24px rgba(217,123,28,.08)}
-  100%{box-shadow:0 4px 20px rgba(14,7,3,.35),0 0 0 2px rgba(217,123,28,.30),0 0 14px rgba(217,123,28,.20)}
-}
-.music-btn svg{width:18px;height:18px;flex-shrink:0;display:block}
-
-/* Tooltip label — left of button */
-.music-btn::before{
-  content:attr(data-label);
-  position:absolute;right:calc(100% + 10px);top:50%;
-  transform:translateY(-50%);
-  background:rgba(14,7,3,.92);backdrop-filter:blur(10px);
-  color:var(--od);font-size:.71rem;font-weight:500;
-  white-space:nowrap;
-  padding:.3rem .75rem;border-radius:var(--r1);
-  border:1px solid rgba(217,123,28,.22);
-  opacity:0;pointer-events:none;
-  transition:opacity .2s ease, transform .2s ease;
-  transform:translateY(-50%) translateX(4px);
-}
-.music-btn:hover::before{
-  opacity:1;
-  transform:translateY(-50%) translateX(0);
+.btt:hover {
+  background: var(--accent-hi);
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: var(--sg2);
 }
 
-/* ════════════════════════════════════════
-   RESPONSIVE — TABLET ≤ 1024
-════════════════════════════════════════ */
-@media(max-width:1024px){
-  .about-grid {grid-template-columns:1fr;gap:2.5rem}
-  .carla-grid {grid-template-columns:1fr;gap:2.5rem}
-  .gallery-masonry{column-count:3}
+/* ── Music button ─────────────────────
+   bottom = btt-bottom(1.5rem) + btt-height(46px) + gap(12px)
+   = 1.5rem + 58px
+   Using calc so it's always exact.
+──────────────────────────────────────── */
+.music-btn {
+  bottom: calc(1.5rem + 46px + 12px);
+  background: rgba(16,7,2,.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(217,123,28,.42);
+  color: var(--accent-lt);
+  box-shadow: 0 4px 20px rgba(14,7,3,.35);
+  transition: background .28s, border-color .28s,
+              box-shadow .28s, transform .4s var(--spring);
+}
+.music-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: var(--sg2);
+}
+.music-btn.playing {
+  border-color: var(--accent-lt);
+  animation: musicRing 3s ease infinite;
+}
+@keyframes musicRing {
+  0%   { box-shadow: 0 4px 20px rgba(14,7,3,.35), 0 0 0 2px rgba(217,123,28,.30), 0 0 14px rgba(217,123,28,.18); }
+  50%  { box-shadow: 0 4px 20px rgba(14,7,3,.35), 0 0 0 8px rgba(217,123,28,.0),  0 0 22px rgba(217,123,28,.08); }
+  100% { box-shadow: 0 4px 20px rgba(14,7,3,.35), 0 0 0 2px rgba(217,123,28,.30), 0 0 14px rgba(217,123,28,.18); }
+}
+.music-btn svg { width: 18px; height: 18px; flex-shrink: 0; display: block; }
+
+/* Tooltip */
+.music-btn::before {
+  content: attr(data-label);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+  background: rgba(14,7,3,.92);
+  backdrop-filter: blur(10px);
+  color: var(--od);
+  font-size: .71rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: .3rem .75rem;
+  border-radius: var(--r1);
+  border: 1px solid rgba(217,123,28,.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.music-btn:hover::before {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
-/* ════════════════════════════════════════
-   RESPONSIVE — TABLET/MOBILE ≤ 900
-════════════════════════════════════════ */
-@media(max-width:900px){
-  .centres-grid{grid-template-columns:1fr}
-  .life-grid   {grid-template-columns:1fr}
-  .life-grid .lc:first-child{grid-column:1}
-  .life-grid .lc:first-child .sched{grid-template-columns:1fr;gap:0}
-  .prog-grid   {grid-template-columns:1fr}
-  .contact-grid{grid-template-columns:1fr}
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE SYSTEM
+   Single source of truth: var(--gutter) = clamp(1rem,4.5vw,1.5rem)
+   Applied to EVERY element that touches screen edges.
+   Desktop → tablet → mobile → tiny auto-adjusts without drift.
+════════════════════════════════════════════════════════════ */
+
+/* ── Tablet ≤ 1024 ─────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .about-grid      { grid-template-columns: 1fr; gap: 2.5rem; }
+  .carla-grid      { grid-template-columns: 1fr; gap: 2.5rem; }
+  .gallery-masonry { column-count: 3; }
 }
 
-/* ════════════════════════════════════════
-   RESPONSIVE — MOBILE ≤ 600
-════════════════════════════════════════ */
-@media(max-width:600px){
-  /* Section rhythm */
-  .sec{padding:clamp(2.4rem,7vw,3.5rem) 0}
+/* ── Tablet / Mobile ≤ 900 ──────────────────────────────── */
+@media (max-width: 900px) {
+  .centres-grid  { grid-template-columns: 1fr; }
+  .prog-grid     { grid-template-columns: 1fr; }
+  .contact-grid  { grid-template-columns: 1fr; }
+  .life-grid     { grid-template-columns: 1fr; }
+  .life-grid .lc:first-child              { grid-column: 1; }
+  .life-grid .lc:first-child .sched      { grid-template-columns: 1fr; gap: 0; }
+}
 
-  /* All internal card paddings use --gutter consistently */
-  .lc-hd  {padding:.9rem var(--gutter) .8rem}
-  .lc-bd  {padding:.9rem var(--gutter) 1rem}
-  .cc-top {padding:1.2rem var(--gutter) 1.2rem}
-  .cc-body{padding:.95rem var(--gutter) 1.1rem}
-  .con-card{padding:1.1rem var(--gutter)}
-  .ac     {padding:1rem var(--gutter)}
-  .pg     {padding:1.1rem var(--gutter)}
-  .cstat  {padding:.75rem var(--gutter)}
+/* ── Mobile ≤ 600 ───────────────────────────────────────── */
+@media (max-width: 600px) {
 
-  /* Carla stats — 2 col on mobile */
-  .carla-stats{grid-template-columns:1fr 1fr}
+  /* Section vertical padding */
+  .sec { padding: clamp(2rem, 7vw, 3rem) 0; }
+
+  /* ─── ALL card / panel internal padding uses var(--gutter) ───
+     This is the one rule that fixes everything.
+     var(--gutter) = clamp(1rem, 4.5vw, 1.5rem)
+     On 320px → 1rem (16px) · On 375px → ~1.07rem · On 414px → ~1.17rem
+     Every card edge = every .ctr edge = every section edge. Aligned.
+  ─────────────────────────────────────────────────────────── */
+
+  /* Nav */
+  .brand-img  { width: 34px; height: 34px; }
+  .brand-name { font-size: clamp(.72rem, 3.5vw, .82rem); }
+  .brand-unit { font-size: clamp(.4rem, 1.6vw, .5rem); }
+
+  /* Life cards */
+  .lc-hd { padding: .85rem var(--gutter) .75rem; }
+  .lc-bd { padding: .85rem var(--gutter) 1rem; }
+
+  /* Centre cards */
+  .cc-top  { padding: 1.1rem var(--gutter); }
+  .cc-body { padding: .9rem var(--gutter) 1rem; }
+
+  /* About / value cards */
+  .ac  { padding: .95rem var(--gutter); }
+
+  /* Program cards */
+  .pg  { padding: 1rem var(--gutter); }
+
+  /* Carla stat boxes */
+  .cstat { padding: .72rem var(--gutter); }
+  .carla-stats { grid-template-columns: 1fr 1fr; }
+
+  /* Contact cards */
+  .con-card { padding: 1rem var(--gutter); }
+
+  /* Footer — inner container uses var(--gutter) via site-footer padding */
+  .footer-top    { flex-direction: column; gap: 1.2rem; align-items: flex-start; }
+  .footer-nav    { gap: .1rem; }
+  .footer-nav a  { font-size: .8rem; padding: .28rem .6rem; }
+  .footer-logo   { width: 42px; height: 42px; }
+  .ft-name       { font-size: .9rem; }
+  .ft-unit       { font-size: .6rem; }
+  .footer-btm p  { font-size: .73rem; }
 
   /* Gallery */
-  .gallery-masonry{column-count:2;column-gap:.4rem}
-  .gi{margin-bottom:.4rem}
+  .gallery-masonry { column-count: 2; column-gap: .5rem; }
+  .gi              { margin-bottom: .5rem; }
 
-  /* Nav brand */
-  .brand-name{font-size:.76rem}
-  .brand-unit{font-size:.44rem}
-  .brand-img {width:35px;height:35px}
+  /* Quote band */
+  .quote-band blockquote { font-size: clamp(1.1rem, 4vw, 1.4rem); }
 
-  /* Lightbox arrows — smaller + safe edges */
-  .lb-arr  {font-size:1.3rem;padding:.42rem .72rem}
-  .lb-prev {left:.5rem}
-  .lb-next {right:.5rem}
-  .lb-x    {top:.8rem;right:.8rem}
+  /* Stats bar — column layout */
+  .stats-strip { flex-direction: column; padding: 1.2rem var(--gutter); gap: 0; }
+  .ss-div      { width: 50%; height: 1px; margin: .1rem 0; }
+  .ss-item     { padding: .45rem 0; width: 100%; text-align: center; }
+  .ss-num      { font-size: clamp(1.5rem, 5vw, 2rem); }
 
-  /* Quote */
-  .quote-band blockquote{font-size:1.18rem}
+  /* Schedule row sizing */
+  .sr { grid-template-columns: clamp(54px, 14vw, 66px) 12px 1fr; gap: .36rem; }
+  .st { font-size: clamp(.66rem, 2.5vw, .74rem); }
+  .sa { font-size: clamp(.74rem, 2.5vw, .82rem); }
 
-  /* Footer */
-  .footer-top{flex-direction:column;gap:1.2rem}
-  .footer-nav{gap:.1rem}
+  /* Lightbox */
+  .lb-arr  { font-size: 1.3rem; padding: .4rem .65rem; }
+  .lb-prev { left: .5rem; }
+  .lb-next { right: .5rem; }
+  .lb-x    { top: .9rem; right: .9rem; width: 36px; height: 36px; }
 
-  /* Floating buttons — smaller on mobile, safe spacing */
-  .float-btn-base{
-    width:42px;height:42px;
-    right:max(1rem, env(safe-area-inset-right, 1rem));
-  }
-  .btt{
-    bottom:max(1rem, env(safe-area-inset-bottom, 1rem));
-  }
-  .music-btn{
-    bottom:calc(max(1rem, env(safe-area-inset-bottom, 1rem)) + 42px + 10px);
-  }
-  /* Hide tooltip on mobile — no room */
-  .music-btn::before{display:none}
+  /* Floating buttons — 40px, 1.2rem from edges */
+  .float-btn-base { width: 40px; height: 40px; right: 1.2rem; }
+  .btt            { bottom: 1.2rem; }
+  .music-btn      { bottom: calc(1.2rem + 40px + 10px); }
+  .music-btn::before { display: none; }
 
-  /* Schedule time column */
-  .sr{grid-template-columns:clamp(58px,13vw,66px) 12px 1fr;gap:.38rem}
+  /* Hero */
+  .hero          { padding-bottom: 4rem; }
+  .hero-body     { padding: 1.4rem var(--gutter); }
+  .hero-btn      { padding: .74rem 1.8rem; font-size: .85rem; }
+  .hero-ticker   { flex-wrap: nowrap; align-items: flex-start; gap: .5rem; bottom: 2.8rem; }
+  .ticker-label  { display: none; }
+  .ticker-dot    { margin-top: 3px; flex-shrink: 0; }
+  .ticker-text   { font-size: .74rem; text-align: left; }
 }
 
-/* ════════════════════════════════════════
-   RESPONSIVE — EXTRA SMALL ≤ 380
-════════════════════════════════════════ */
-@media(max-width:380px){
-  .brand-unit  {display:none}
-  .gallery-masonry{column-count:1}
-  .carla-stats {grid-template-columns:1fr}
-  .cc-body     {padding:.85rem var(--gutter)}
-  .con-card    {padding:.95rem var(--gutter)}
-  .ac          {padding:.9rem var(--gutter)}
-  .pg          {padding:.95rem var(--gutter)}
+/* ── Extra small ≤ 380 ─────────────────────────────────── */
+@media (max-width: 380px) {
+  /* Hide subtitle in nav — too cramped */
+  .brand-unit { display: none; }
 
-  /* Floating buttons even tighter on tiny phones */
-  .float-btn-base{
-    width:40px;height:40px;
-    right:max(.85rem, env(safe-area-inset-right, .85rem));
-  }
-  .btt{
-    bottom:max(.85rem, env(safe-area-inset-bottom, .85rem));
-  }
-  .music-btn{
-    bottom:calc(max(.85rem, env(safe-area-inset-bottom, .85rem)) + 40px + 10px);
-  }
+  /* Cards tighten further — use full gutter */
+  .cc-body  { padding: .8rem var(--gutter); }
+  .con-card { padding: .9rem var(--gutter); }
+  .ac       { padding: .85rem var(--gutter); }
+  .pg       { padding: .9rem var(--gutter); }
+  .lc-bd    { padding: .8rem var(--gutter) .9rem; }
+
+  /* Gallery single column on tiny phones */
+  .gallery-masonry { column-count: 1; }
+
+  /* Carla stats single column */
+  .carla-stats { grid-template-columns: 1fr; }
+
+  /* Floaters tightest */
+  .float-btn-base { width: 38px; height: 38px; right: 1rem; }
+  .btt            { bottom: 1rem; }
+  .music-btn      { bottom: calc(1rem + 38px + 10px); }
 }
